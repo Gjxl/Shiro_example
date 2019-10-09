@@ -45,44 +45,50 @@
 （更多关于shiro是什么的文字请自行去搜索引擎找，本文主要记录springboot与shiro的集成）
 首先先创建springboot项目，此处不过多描述。
 
-#### 上代码：
+源代码地址：[](https://github.com/king0515/Shiro_example)
 
-##### 目录结构：
-
-
-
-![img](https://upload-images.jianshu.io/upload_images/15087669-b5c72e9970e06528.png?imageMogr2/auto-orient/strip|imageView2/2/w/473/format/webp)
-
-目录结构
-
-#### pom.xml:
+pom.xml:
 
 ```xml
-<dependency>
-  <groupId>org.springframework.boot</groupId>
-  <artifactId>spring-boot-starter-web</artifactId>
-</dependency>
-<dependency>
-  <groupId>org.mybatis.spring.boot</groupId>
-  <artifactId>mybatis-spring-boot-starter</artifactId>
-  <version>2.0.1</version>
-</dependency>
-<dependency>
-  <groupId>org.springframework.boot</groupId>
-  <artifactId>spring-boot-starter-test</artifactId>
-  <scope>test</scope>
-</dependency>
-<dependency>
-  <groupId>org.apache.shiro</groupId>
-  <artifactId>shiro-spring</artifactId>
-  <version>1.4.0</version>
-</dependency>
+<parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>2.0.0.RELEASE</version>
+    </parent>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.mybatis.spring.boot</groupId>
+            <artifactId>mybatis-spring-boot-starter</artifactId>
+            <version>2.0.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.shiro</groupId>
+            <artifactId>shiro-spring</artifactId>
+            <version>1.4.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.16.20</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
 ```
 
-#### user.java(用户实体类)：
+User.java(用户实体类)：
 
 ```tsx
-package com.wsl.bean;
+package com.shiro.bean;
 
 import java.util.Set;
 
@@ -98,10 +104,10 @@ public class User {
 }
 ```
 
-#### Role.java(角色对应实体类)：
+Role.java(角色对应实体类)：
 
 ```tsx
-package com.wsl.bean;
+package com.shiro.bean;
 
 import java.util.Set;
 
@@ -117,7 +123,7 @@ public class Role {
 }
 ```
 
-#### Permissions.java(权限对应实体类):
+Permissions.java(权限对应实体类):
 
 ```tsx
 public class Permissions {
@@ -127,15 +133,15 @@ public class Permissions {
 }
 ```
 
-#### LoginServiceImpl.java:
+LoginServiceImpl.java:
 
 ```java
-package com.wsl.service.impl;
+package com.shiro.service.impl;
 
-import com.wsl.bean.Permissions;
-import com.wsl.bean.Role;
-import com.wsl.bean.User;
-import com.wsl.service.LoginService;
+import com.shiro.bean.Permissions;
+import com.shiro.bean.Role;
+import com.shiro.bean.User;
+import com.shiro.service.LoginService;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -168,7 +174,7 @@ public class LoginServiceImpl implements LoginService {
         Role role = new Role("1","admin",permissionsSet);
         Set<Role> roleSet = new HashSet<>();
         roleSet.add(role);
-        User user = new User("1","wsl","123456",roleSet);
+        User user = new User("1","wmh","123456",roleSet);
         Map<String ,User> map = new HashMap<>();
         map.put(user.getUserName(), user);
 
@@ -185,17 +191,17 @@ public class LoginServiceImpl implements LoginService {
 }
 ```
 
-#### 自定义Realm用于查询用户的角色和权限信息并保存到权限管理器：
+自定义Realm用于查询用户的角色和权限信息并保存到权限管理器：
 
-#### CustomRealm.java
+CustomRealm.java
 
 ```java
-package com.wsl.shiro;
+package com.shiro.realm;
 
-import com.wsl.bean.Permissions;
-import com.wsl.bean.Role;
-import com.wsl.bean.User;
-import com.wsl.service.LoginService;
+import com.shiro.bean.Permissions;
+import com.shiro.bean.Role;
+import com.shiro.bean.User;
+import com.shiro.service.LoginService;
 import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.AuthenticationInfo;
 import org.apache.shiro.authc.AuthenticationToken;
@@ -244,36 +250,39 @@ public class CustomRealm extends AuthorizingRealm {
             return null;
         } else {
             //这里验证authenticationToken和simpleAuthenticationInfo的信息
-            SimpleAuthenticationInfo simpleAuthenticationInfo = new SimpleAuthenticationInfo(name, user.getPassword().toString(), getName());
+            SimpleAuthenticationInfo simpleAuthenticationInfo = new SimpleAuthenticationInfo(name, user.getPassword(), getName());
             return simpleAuthenticationInfo;
         }
     }
 }
 ```
 
-#### 把CustomRealm和SecurityManager等加入到spring容器：
+把CustomRealm和SecurityManager等加入到spring容器：
 
-#### ShiroConfig.java:
+ShiroConfig.java:
 
 ```java
-package com.wsl.config;
+package com.shiro.config;
 
-import com.wsl.shiro.CustomRealm;
+import com.shiro.configuration.ShiroProperties;
+import com.shiro.realm.CustomRealm;
 import org.apache.shiro.mgt.SecurityManager;
 import org.apache.shiro.spring.security.interceptor.AuthorizationAttributeSourceAdvisor;
 import org.apache.shiro.spring.web.ShiroFilterFactoryBean;
 import org.apache.shiro.web.mgt.DefaultWebSecurityManager;
 import org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.util.HashMap;
-import java.util.Map;
-
 @Configuration
-public class shiroConfig {
-    //不加这个注解不生效，具体不详
+public class ShiroConfig {
+
+    //从容器中拿去url配置规则
+    @Autowired
+    private ShiroProperties shiroProperties;
+
     @Bean
     @ConditionalOnMissingBean
     public DefaultAdvisorAutoProxyCreator defaultAdvisorAutoProxyCreator() {
@@ -302,22 +311,26 @@ public class shiroConfig {
     public ShiroFilterFactoryBean shiroFilterFactoryBean(SecurityManager securityManager) {
         ShiroFilterFactoryBean shiroFilterFactoryBean = new ShiroFilterFactoryBean();
         shiroFilterFactoryBean.setSecurityManager(securityManager);
+        //以下注释部分，还可以将配置定义到yaml中
         Map<String, String> map = new HashMap<>();
         //登出
         map.put("/logout", "logout");
         //对所有用户认证
-        map.put("/**", "authc");
+        map.put("/**", "authc");//authc表示需要认证才可以访问,anon表示可以匿名访问
+        //表示可以匿名访问
+        map.put("/index2","anon"); //详细规则请见本目录下URL匹配规则.md文件
+
         //登录
         shiroFilterFactoryBean.setLoginUrl("/login");
         //首页
         shiroFilterFactoryBean.setSuccessUrl("/index");
         //错误页面，认证不通过跳转
         shiroFilterFactoryBean.setUnauthorizedUrl("/error");
+
         shiroFilterFactoryBean.setFilterChainDefinitionMap(map);
         return shiroFilterFactoryBean;
     }
 
-    //加入注解的使用，不加入这个注解不生效
     @Bean
     public AuthorizationAttributeSourceAdvisor authorizationAttributeSourceAdvisor(SecurityManager securityManager) {
         AuthorizationAttributeSourceAdvisor authorizationAttributeSourceAdvisor = new AuthorizationAttributeSourceAdvisor();
@@ -327,12 +340,12 @@ public class shiroConfig {
 }
 ```
 
-#### LoginController.java:
+LoginController.java:
 
 ```java
-package com.wsl.controller;
+package com.shiro.controller;
 
-import com.wsl.bean.User;
+import com.shiro.bean.User;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.UsernamePasswordToken;
@@ -359,31 +372,36 @@ public class LoginController {
             subject.login(usernamePasswordToken);
 //            subject.checkRole("admin");
 //            subject.checkPermissions("query", "add");
-        } catch (AuthenticationException e) {
+        } catch (AuthorizationException e) {
             e.printStackTrace();
             return "账号或密码错误！";
-        } catch (AuthorizationException e) {
+        } catch (AuthenticationException e) {
             e.printStackTrace();
             return "没有权限";
         }
         return "login success";
     }
      //注解验角色和权限
-    @RequiresRoles("admin")
-    @RequiresPermissions("add")
+    @RequiresRoles("admin") //需要admin角色的用户
+    @RequiresPermissions("add")//需要有add权限的方可访问
     @RequestMapping("/index")
     public String index() {
         return "index!";
     }
+
+    @RequestMapping("/index2")
+    public String index2() {
+        return "匿名访问!";
+    }
 }
 ```
 
-##### 注解验证角色和权限的话无法捕捉异常，从而无法正确的返回给前端错误信息，所以我加了一个类用于拦截异常，具体代码如下
+注解验证角色和权限的话无法捕捉异常，从而无法正确的返回给前端错误信息，所以我加了一个类用于拦截异常，具体代码如下
 
-##### MyExceptionHandler.java
+MyExceptionHandler.java
 
 ```css
-package com.wsl.filter;
+package com.shiro.filter;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.authz.AuthorizationException;
@@ -403,32 +421,149 @@ public class MyExceptionHandler {
 }
 ```
 
-打开网页 [http://localhost:8080/login?userName=wsl&password=123456](https://links.jianshu.com/go?to=http%3A%2F%2Flocalhost%3A8080%2Flogin%3FuserName%3Dwsl%26password%3D123456)
+App.java
 
+```java
+package com.shiro;
 
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 
-![img](https://upload-images.jianshu.io/upload_images/15087669-bc8cae7048b8cf1a.png?imageMogr2/auto-orient/strip|imageView2/2/w/346/format/webp)
+/**
+ * @author: create by wangmh
+ * @projectName: Shiro_example
+ * @packageName: com.shiro
+ * @description:
+ * @date: 2019/10/9
+ **/
+@EnableAutoConfiguration(exclude={DataSourceAutoConfiguration.class})
+@SpringBootApplication
+public class App {
+    public static void main(String[] args) {
+        SpringApplication.run(App.class, args);
+    }
+}
+```
 
-登录成功
+打开网页 [http://localhost:8080/login?userName=wmh&password=123456](https://links.jianshu.com/go?to=http%3A%2F%2Flocalhost%3A8080%2Flogin%3FuserName%3Dwsl%26password%3D123456) 显示login success
 
-
-
-然后输入index地址：[http://localhost:8080/index](https://links.jianshu.com/go?to=http%3A%2F%2Flocalhost%3A8080%2Findex)
-
-
-
-![img](https://upload-images.jianshu.io/upload_images/15087669-00c9c687c0818516.png?imageMogr2/auto-orient/strip|imageView2/2/w/379/format/webp)
+然后输入index地址：[http://localhost:8080/index](https://links.jianshu.com/go?to=http%3A%2F%2Flocalhost%3A8080%2Findex) 显示index
 
 index访问成功
 
-
-
-换zhangsan账号登录后再访问index
+使用zhangsan账号登录后再访问index
 [http://localhost:8080/login?userName=zhangsan&password=123456](https://links.jianshu.com/go?to=http%3A%2F%2Flocalhost%3A8080%2Flogin%3FuserName%3Dzhangsan%26password%3D123456)
-[http://localhost:8080/index](https://links.jianshu.com/go?to=http%3A%2F%2Flocalhost%3A8080%2Findex)
+[http://localhost:8080/index](https://links.jianshu.com/go?to=http%3A%2F%2Flocalhost%3A8080%2Findex) 显示无权限
 
 
 
-![img](https://upload-images.jianshu.io/upload_images/15087669-56ec6c1d8e65cd45.png?imageMogr2/auto-orient/strip|imageView2/2/w/605/format/webp)
+## 4.URL规则
 
-权限控制访问失败
+#### 1.配置url匹配规则时，我们可以将其配置到yaml文件中
+
+创建application.yaml文件
+
+```yaml
+## 通过yaml文件配置url匹配规则
+shiro:
+  filterChainDefinitionMap:
+    /logout: logout
+    /**: authc
+    /index2: anon
+```
+
+创建配置类ShiroProperties，并将其注入到容器中
+
+```java
+package com.shiro.configuration;
+
+import lombok.Data;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.stereotype.Component;
+import java.util.Map;
+
+/**
+ * @author: create by wangmh
+ * @projectName: Shiro_example   从yaml文件中获取url匹配规则
+ * @packageName: com.shiro.configuration
+ * @description:
+ * @date: 2019/10/9
+ **/
+@Data
+@Component
+@ConfigurationProperties(prefix = "shiro")
+public class ShiroProperties {
+    private Map<String,String> filterChainDefinitionMap;
+}
+```
+
+将ShiroConfig.java中url配置代码注释掉，如下：
+
+```java
+//      Map<String, String> map = new HashMap<>();
+//        //登出
+//        map.put("/logout", "logout");
+//        //对所有用户认证
+//        map.put("/**", "authc");//authc表示需要认证才可以访问,anon表示可以匿名访问
+//        //表示可以匿名访问
+//        map.put("/index2","anon"); //详细规则请见本目录下URL匹配规则.md文件
+```
+
+添加，并修改如下：
+
+```java
+//添加  
+@Autowired
+private ShiroProperties shiroProperties;
+```
+
+```java
+//修改 shiroFilterFactoryBean.setFilterChainDefinitionMap(map);
+shiroFilterFactoryBean.setFilterChainDefinitionMap(shiroProperties.getFilterChainDefinitionMap());
+```
+
+#### 2.url匹配规则
+
+```
+（1）“?”：匹配一个字符，如”/admin?”，将匹配“ /admin1”、“/admin2”，但不匹配“/admin”
+
+（2）“*”：匹配零个或多个字符串，如“/admin*”，将匹配“ /admin”、“/admin123”，但不匹配“/admin/1”
+
+（3）“**”：匹配路径中的零个或多个路径，如“/admin/**”，将匹配“/admin/a”、“/admin/a/b”
+
+```
+
+#### 3.shiro过滤器
+
+```
+（1）anon：匿名过滤器，表示通过了url配置的资源都可以访问，例：“/statics/**=anon”表示statics目录下所有资源都能访问
+
+（2）authc：基于表单的过滤器，表示通过了url配置的资源需要登录验证，否则跳转到登录，例：“/unauthor.jsp=authc”如果用户没有登录访问unauthor.jsp则直接跳转到登录
+
+（3）authcBasic：Basic的身份验证过滤器，表示通过了url配置的资源会提示身份验证，例：“/welcom.jsp=authcBasic”访问welcom.jsp时会弹出身份验证框
+
+（4）perms：权限过滤器，表示访问通过了url配置的资源会检查相应权限，例：“/statics/**=perms["user:add:*,user:modify:*"]“表示访问statics目录下的资源时只有新增和修改的权限
+
+（5）port：端口过滤器，表示会验证通过了url配置的资源的请求的端口号，例：“/port.jsp=port[8088]”访问port.jsp时端口号不是8088会提示错误
+
+（6）rest：restful类型过滤器，表示会对通过了url配置的资源进行restful风格检查，例：“/welcom=rest[user:create]”表示通过restful访问welcom资源时只有新增权限
+
+（7）roles：角色过滤器，表示访问通过了url配置的资源会检查是否拥有该角色，例：“/welcom.jsp=roles[admin]”表示访问welcom.jsp页面时会检查是否拥有admin角色
+
+（8）ssl：ssl过滤器，表示通过了url配置的资源只能通过https协议访问，例：“/welcom.jsp=ssl”表示访问welcom.jsp页面如果请求协议不是https会提示错误
+
+（9）user：用户过滤器，表示可以使用登录验证/记住我的方式访问通过了url配置的资源，例：“/welcom.jsp=user”表示访问welcom.jsp页面可以通过登录验证或使用记住我后访问，否则直接跳转到登录
+
+（10）logout：退出拦截器，表示执行logout方法后，跳转到通过了url配置的资源，例：“/logout.jsp=logout”表示执行了logout方法后直接跳转到logout.jsp页面
+```
+
+#### 4.5、过滤器分类
+
+```
+（1）认证过滤器：anon、authcBasic、auchc、user、logout
+
+（2）授权过滤器：perms、roles、ssl、rest、port
+```
+

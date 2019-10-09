@@ -12,9 +12,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.util.HashMap;
-import java.util.Map;
-
 @Configuration
 public class ShiroConfig {
 
@@ -65,7 +62,7 @@ public class ShiroConfig {
         shiroFilterFactoryBean.setSuccessUrl("/index");
         //错误页面，认证不通过跳转
         shiroFilterFactoryBean.setUnauthorizedUrl("/error");
-
+//        shiroFilterFactoryBean.setFilterChainDefinitionMap(map);
         shiroFilterFactoryBean.setFilterChainDefinitionMap(shiroProperties.getFilterChainDefinitionMap());
         return shiroFilterFactoryBean;
     }
