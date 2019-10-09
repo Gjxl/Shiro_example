@@ -37,7 +37,7 @@ public class LoginServiceImpl implements LoginService {
         Role role = new Role("1","admin",permissionsSet);
         Set<Role> roleSet = new HashSet<>();
         roleSet.add(role);
-        User user = new User("1","wsl","123456",roleSet);
+        User user = new User("1","wmh","123456",roleSet);
         Map<String ,User> map = new HashMap<>();
         map.put(user.getUserName(), user);
 

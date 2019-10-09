@@ -1,53 +1,4 @@
-## 1.shiro是什么?
-
-###### Shiro是Apache下的一个开源项目。shiro属于轻量级框架，相对于SpringSecurity简单的多，也没有SpringSecurity那么复杂。以下是我自己学习之后的记录。
-
-###### 官方架构图如下：
-
-
-
-![img](https://upload-images.jianshu.io/upload_images/15087669-df91fa9f6c3e40d7.png?imageMogr2/auto-orient/strip|imageView2/2/w/414/format/webp)
-
-官方架构图
-
-## 2.主要功能
-
-### shiro主要有三大功能模块：
-
-###### 1. Subject：主体，一般指用户。
-
-###### 2. SecurityManager：安全管理器，管理所有Subject，可以配合内部安全组件。(类似于SpringMVC中的DispatcherServlet)
-
-###### 3. Realms：用于进行权限信息的验证，一般需要自己实现。
-
-## 3.细分功能
-
-###### 1. Authentication：身份认证/登录(账号密码验证)。
-
-###### 2. Authorization：授权，即角色或者权限验证。
-
-###### 3. Session Manager：会话管理，用户登录后的session相关管理。
-
-###### 4. Cryptography：加密，密码加密等。
-
-###### 5. Web Support：Web支持，集成Web环境。
-
-###### 6. Caching：缓存，用户信息、角色、权限等缓存到如redis等缓存中。
-
-###### 7. Concurrency：多线程并发验证，在一个线程中开启另一个线程，可以把权限自动传播过去。
-
-###### 8. Testing：测试支持；
-
-###### 9. Run As：允许一个用户假装为另一个用户（如果他们允许）的身份进行访问。
-
-###### 10. Remember Me：记住我，登录后，下次再来的话不用登录了。
-
-（更多关于shiro是什么的文字请自行去搜索引擎找，本文主要记录springboot与shiro的集成）
-首先先创建springboot项目，此处不过多描述。
-
-
-
-##  4.URL匹配规则
+*二、URL匹配规则*
 
 （1）“?”：匹配一个字符，如”/admin?”，将匹配“ /admin1”、“/admin2”，但不匹配“/admin”
 
@@ -79,7 +30,7 @@
 
 （10）logout：退出拦截器，表示执行logout方法后，跳转到通过了url配置的资源，例：“/logout.jsp=logout”表示执行了logout方法后直接跳转到logout.jsp页面
 
-## 5、过滤器分类
+*四、过滤器分类*
 
 （1）认证过滤器：anon、authcBasic、auchc、user、logout
 

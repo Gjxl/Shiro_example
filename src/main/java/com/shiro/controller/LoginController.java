@@ -27,20 +27,25 @@ public class LoginController {
             subject.login(usernamePasswordToken);
 //            subject.checkRole("admin");
 //            subject.checkPermissions("query", "add");
-        } catch (AuthenticationException e) {
+        } catch (AuthorizationException e) {
             e.printStackTrace();
             return "账号或密码错误！";
-        } catch (AuthorizationException e) {
+        } catch (AuthenticationException e) {
             e.printStackTrace();
             return "没有权限";
         }
         return "login success";
     }
      //注解验角色和权限
-    @RequiresRoles("admin")
-    @RequiresPermissions("add")
+    @RequiresRoles("admin") //需要admin角色的用户
+    @RequiresPermissions("add")//需要有add权限的方可访问
     @RequestMapping("/index")
     public String index() {
         return "index!";
+    }
+
+    @RequestMapping("/index2")
+    public String index2() {
+        return "匿名访问!";
     }
 }
